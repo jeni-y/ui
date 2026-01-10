@@ -10,12 +10,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = trim($_POST['email']);
         $password = trim($_POST['password']);
 
-        // Demo validation (replace with DB logic)
+        // DEMO LOGIN (replace with DB)
         if ($email === 'admin@example.com' && $password === '123456') {
-            $_SESSION['user'] = $email;
-            $message = "Login successful!";
-            $type = "success";
+            #$_SESSION['user'] = $email;
+            $username = explode('@', $email)[0];
+            $_SESSION['username'] = $username;
             header("Location: login_index.php");
+            exit;
         } else {
             $message = "Invalid email or password";
             $type = "error";
@@ -23,185 +24,196 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($_POST['action'] === 'signup') {
-        $username = trim($_POST['username']);
-
-        if(!empty($username)){
-            $_SESSION['username'] = $username;   
-        }
-
         $email = trim($_POST['email']);
-        $password = trim($_POST['password']);
-        $confirm = trim($_POST['confirm_password']);
 
-        if ($password !== $confirm) {
-            $message = "Passwords do not match";
-            $type = "error";
-        } else {
-            // Demo success (replace with DB insert)
-            $message = "Account created successfully.";
+        if (!empty($email)) {
+            // DEMO SIGNUP (replace with DB insert)
+            $message = "Account created successfully. Please log in.";
             $type = "success";
-            header("Location: login_index.php");
-            exit;
-
         }
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Login / Sign Up</title>
+<title>Authentication</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
+*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+
 body{
-    height:100vh;
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    background:#fafafa;
+}
+
+.card{
+    width:460px;
+    background:#fff;
+    padding:40px;
+    margin-top:40px;
+    border-radius:10px;
+    box-shadow:0 10px 30px rgba(0,0,0,.1);
+}
+
+h1{margin-bottom:6px}
+.subtitle{color:#555;margin-bottom:28px}
+
+label{font-size:14px;margin-bottom:6px;display:block}
+input{
+    width:100%;
+    padding:13px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    font-size:15px;
+    margin-bottom:16px;
+}
+
+input:focus{outline:none;border-color:#9ef01a}
+
+button{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:6px;
+    font-size:15px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.primary{
+    background:#9ef01a;
+}
+
+.primary:hover{background:#8bdc12}
+
+.google{
+    background:#fff;
+    border:1px solid #ccc;
+    margin-bottom:20px;
+}
+
+.or{
     display:flex;
     align-items:center;
-    justify-content:center;
-    background:linear-gradient(135deg,#667eea,#764ba2);
+    margin:24px 0;
+    color:#777;
 }
-.auth-card{
-    width:380px;
-    background:#fff;
-    padding:35px;
-    border-radius:12px;
-    box-shadow:0 20px 40px rgba(0,0,0,0.2);
+
+.or::before,.or::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:#ddd;
 }
-h2{text-align:center;margin-bottom:10px;color:#333;}
-.subtitle{text-align:center;font-size:14px;color:#777;margin-bottom:25px;}
+
+.or span{margin:0 12px}
+
+.link{
+    color:#0066ff;
+    cursor:pointer;
+    text-decoration:none;
+}
+
+.footer{
+    margin-top:16px;
+    font-size:14px;
+}
 
 .message{
     padding:10px;
     border-radius:6px;
-    margin-bottom:15px;
+    margin-bottom:18px;
     text-align:center;
-    font-size:14px;
-}
-.error{background:#ffe6e6;color:#b00020;}
-.success{background:#e6fffa;color:#00695c;}
-
-.form-group{margin-bottom:16px;}
-label{display:block;margin-bottom:6px;font-size:14px;color:#555;}
-input{
-    width:100%;
-    padding:11px;
-    border:1px solid #ccc;
-    border-radius:6px;
-    font-size:15px;
-}
-input:focus{border-color:#667eea;outline:none;}
-
-button{
-    width:100%;
-    padding:12px;
-    border:none;
-    border-radius:6px;
-    background:linear-gradient(135deg,#667eea,#764ba2);
-    color:#fff;
-    font-size:16px;
-    font-weight:600;
-    cursor:pointer;
 }
 
-.toggle{
-    text-align:center;
-    margin-top:18px;
-    font-size:14px;
-}
-.toggle a{
-    color:#667eea;
-    text-decoration:none;
-    cursor:pointer;
-}
-.toggle a:hover{text-decoration:underline;}
+.error{background:#ffe6e6;color:#b00020}
+.success{background:#e6fffa;color:#00695c}
 
-.hidden{display:none;}
+.hidden{display:none}
 </style>
 </head>
 
 <body>
 
-<div class="auth-card">
+<div class="card">
 
-    <h2 id="title">Login</h2>
-    <p class="subtitle" id="subtitle">Please login to continue</p>
+<?php if (!empty($message)): ?>
+    <div class="message <?= $type ?>"><?= htmlspecialchars($message) ?></div>
+<?php endif; ?>
 
-    <?php if (!empty($message)): ?>
-        <div class="message <?= $type ?>"><?= htmlspecialchars($message) ?></div>
-    <?php endif; ?>
+<!-- LOGIN -->
+<div id="loginBox">
+    <h1>Welcome back!</h1>
+    <p class="subtitle">Sign into your account</p>
 
-    <!-- LOGIN FORM -->
-    <form method="POST" id="loginForm">
+    <form method="POST">
         <input type="hidden" name="action" value="login">
 
-        <div class="form-group">
-            <label>Email Address</label>
-            <input type="email" name="email" required>
-        </div>
+        <label>Email address</label>
+        <input type="email" name="email" required>
 
-        <div class="form-group">
-            <label>Password</label>
-            <input type="password" name="password" required>
-        </div>
+        <label>Password</label>
+        <input type="password" name="password" required>
 
-        <button type="submit">Login</button>
+        <button class="primary">Log in</button>
     </form>
 
-    <!-- SIGN UP FORM -->
-    <form method="POST" id="signupForm" class="hidden">
+    <div class="or"><span>or</span></div>
+
+    <button class="google" onclick="googleAuth()">Continue with Google</button>
+
+    <div class="footer">
+        Don’t have an account?
+        <span class="link" onclick="showSignup()">Sign up</span>
+    </div>
+</div>
+
+<!-- SIGN UP -->
+<div id="signupBox" class="hidden">
+    <h1>Sign Up</h1>
+    <p class="subtitle">Join over 6 million others learning cyber security.</p>
+
+    <button class="google" onclick="googleAuth()">Continue with Google</button>
+
+    <div class="or"><span>or</span></div>
+
+    <form method="POST">
         <input type="hidden" name="action" value="signup">
 
-        <div class="form-group">
-            <label>Username</label>
-            <input type="text" name="username" required>
-        </div>
+        <label>Email address</label>
+        <input type="email" name="email" placeholder="example@example.com" required>
 
-        <div class="form-group">
-            <label>Email Address</label>
-            <input type="email" name="email" required>
-        </div>
-
-        <div class="form-group">
-            <label>Password</label>
-            <input type="password" name="password" required>
-        </div>
-
-        <div class="form-group">
-            <label>Confirm Password</label>
-            <input type="password" name="confirm_password" required>
-        </div>
-
-        <button type="submit">Sign Up</button>
+        <button class="primary">Continue</button>
     </form>
 
-    <div class="toggle">
-        <span id="toggleText">
-            New user? <a onclick="showSignup()">Create an account</a>
-        </span>
+    <div class="footer">
+        By signing up, you agree to our
+        <a href="#" class="link">Terms and Conditions</a><br><br>
+        Already have an account?
+        <span class="link" onclick="showLogin()">Log in</span>
     </div>
+</div>
 
 </div>
 
 <script>
 function showSignup(){
-    document.getElementById('loginForm').classList.add('hidden');
-    document.getElementById('signupForm').classList.remove('hidden');
-    document.getElementById('title').innerText = 'Sign Up';
-    document.getElementById('subtitle').innerText = 'Create a new account';
-    document.getElementById('toggleText').innerHTML =
-        'Already have an account? <a onclick="showLogin()">Login</a>';
+    document.getElementById('loginBox').classList.add('hidden');
+    document.getElementById('signupBox').classList.remove('hidden');
 }
 
 function showLogin(){
-    document.getElementById('signupForm').classList.add('hidden');
-    document.getElementById('loginForm').classList.remove('hidden');
-    document.getElementById('title').innerText = 'Login';
-    document.getElementById('subtitle').innerText = 'Please login to continue';
-    document.getElementById('toggleText').innerHTML =
-        'New user? <a onclick="showSignup()">Create an account</a>';
+    document.getElementById('signupBox').classList.add('hidden');
+    document.getElementById('loginBox').classList.remove('hidden');
+}
+
+function googleAuth(){
+    window.location.href = "https://accounts.google.com/";
 }
 </script>
 

@@ -266,7 +266,7 @@ footer{
         <li>Per-second billing</li>
         <li>No cost for learning & testing</li>
     </ul>
-    <button>Start Free</button>
+    <button onclick="window.location.href='vm.php'">Start Free</button>
 </div>
 
 <div class="modal" id="paid">
