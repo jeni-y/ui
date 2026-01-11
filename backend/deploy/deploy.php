@@ -66,7 +66,7 @@ if ($isPrivate && empty($clientToken)) {
 $stmt = $pdo->prepare("SELECT id FROM deployments WHERE client_name = ?");
 $stmt->execute([$clientName]);
 if ($stmt->fetch()) {
-    echo json_encode(["status"=>"error", "message"=>"Client name already exists"]);
+    echo json_encode(["status"=>"error", "message"=>"app name already exists"]);
     exit;
 }
 
@@ -78,7 +78,7 @@ $insert = $pdo->prepare(
      (client_name, framework, app_domain, repo_url, repo_branch, status)
      VALUES (?,?,?,?,?,?,?) RETURNING id"
 );
-$insert->execute([$clientName,$framework,$appDomain,$repoUrl,$repoBranch,$dbRequired,'pending']);
+$insert->execute([$clientName,$framework,$appDomain,$repoUrl,$repoBranch,'pending']);
 $deploymentId = (int)$insert->fetchColumn();
 
 // ------------------------
@@ -98,7 +98,7 @@ $payload = json_encode([
     ]
 ], JSON_THROW_ON_ERROR);
 
-$ch = curl_init("https://api.github.com/repos/Ajay003-j/Onehive/actions/workflows/main.yml/dispatches");
+$ch = curl_init("https://api.github.com/repos/Ajay003-j/Onehive/actions/workflows/main.yml/dispatches");//put your github api url here
 curl_setopt_array($ch, [
     CURLOPT_POST => true,
     CURLOPT_RETURNTRANSFER => true,

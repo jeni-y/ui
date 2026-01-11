@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 // Load credentials from JSON or PHP file
-$tokenFile = __DIR__ . '/token.json';
+$tokenFile = __DIR__ . '/../../../token.json';
 
 if (!file_exists($tokenFile)) {
     throw new RuntimeException('Token file not found.');

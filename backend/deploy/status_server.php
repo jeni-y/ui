@@ -53,7 +53,7 @@ class DeploymentStatusServer implements MessageComponentInterface {
         if (!$deploy) return ["error"=>"Unknown client"];
 
         // Poll GitHub Actions API (simplified)
-        $workflowUrl = "https://api.github.com/repos/Ajay003-j/Onehive/actions/runs";
+        $workflowUrl = "https://api.github.com/repos/Ajay003-j/Onehive/actions/runs"; // put your api url here
         $token = getenv('GITHUB_TOKEN');
         $ch = curl_init($workflowUrl);
         curl_setopt_array($ch, [
