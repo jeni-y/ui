@@ -4,23 +4,6 @@ declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 
 /* =========================
-   Secure session settings
-========================= */
-if (session_status() === PHP_SESSION_NONE) {
-
-    session_set_cookie_params([
-        'lifetime' => 0,
-        'path'     => '/',
-        'domain'   => '',
-        'secure'   => true,   // HTTPS only
-        'httponly' => true,   // JS not accessible
-        'samesite' => 'Strict'
-    ]);
-
-    session_start();
-}
-
-/* =========================
    Authentication check
 ========================= */
 if (
@@ -46,7 +29,7 @@ if (!hash_equals($_SESSION['session_fingerprint'], $currentFingerprint)) {
 }
 
 /* =========================
-   Idle timeout (30 minutes)
+   Idle timeout (30 min)
 ========================= */
 $MAX_IDLE_TIME = 1800;
 
