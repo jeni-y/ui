@@ -28,7 +28,6 @@ $framework   = strtolower(trim($_POST['framework'] ?? ''));
 $appDomain   = strtolower(trim($_POST['app_domain'] ?? ''));
 $repoUrl     = trim($_POST['repo_url'] ?? '');
 $repoBranch  = trim($_POST['repo_branch'] ?? 'main');
-$dbRequired  = filter_var($_POST['database_required'] ?? false, FILTER_VALIDATE_BOOLEAN);
 $isPrivate   = ($_POST['is_private_repo'] ?? 'no') === 'yes';
 $clientToken = trim($_POST['client_github_token'] ?? '');
 
@@ -76,7 +75,7 @@ if ($stmt->fetch()) {
 // ------------------------
 $insert = $pdo->prepare(
     "INSERT INTO deployments 
-     (client_name, framework, app_domain, repo_url, repo_branch, database_required, status)
+     (client_name, framework, app_domain, repo_url, repo_branch, status)
      VALUES (?,?,?,?,?,?,?) RETURNING id"
 );
 $insert->execute([$clientName,$framework,$appDomain,$repoUrl,$repoBranch,$dbRequired,'pending']);
@@ -95,7 +94,6 @@ $payload = json_encode([
         "app_domain" => $appDomain,
         "repo_url" => $repoUrl,
         "repo_branch" => $repoBranch,
-        "database_required" => $dbRequired,
         "client_github_token" => $isPrivate ? $clientToken : null
     ]
 ], JSON_THROW_ON_ERROR);

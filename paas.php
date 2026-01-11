@@ -75,18 +75,6 @@ require_once __DIR__ . '/../../backend/middleware/auth_check.php';
                  placeholder="ghp_xxx..." autocomplete="off">
         </div>
 
-        <!-- Database Required -->
-        <div class="form-group small-toggle">
-          <label>Database Required?</label>
-          <div class="toggle-group">
-            <input type="radio" id="db_no" name="database_required" value="false" checked>
-            <label for="db_no">No</label>
-
-            <input type="radio" id="db_yes" name="database_required" value="true">
-            <label for="db_yes">Yes</label>
-          </div>
-        </div>
-
         <!-- Database Options (hidden until Yes is selected) -->
         <div class="form-group" id="database_options" style="display:none;">
           <label for="db_type">Database Type</label>
