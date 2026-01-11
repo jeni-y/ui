@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const formData = new FormData(deployForm);
 
-    fetch("/deploy.php", {
+    fetch("/backend/deploy/deploy.php", {
       method: "POST",
       body: formData
     })

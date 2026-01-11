@@ -1,3 +1,7 @@
+<?php
+require_once __DIR__. '/backend/bootstrap.php';
+require_once __DIR__ . '/../../backend/middleware/auth_check.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

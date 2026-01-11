@@ -1,5 +1,7 @@
 <?php
 session_start();
+require_once __DIR__. '/backend/bootstrap.php';
+require_once __DIR__ . '/../../backend/middleware/auth_check.php';
 if (empty($_SESSION['username'])) {
     header("Location: login.php");
     exit;
