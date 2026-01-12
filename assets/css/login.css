@@ -74,7 +74,7 @@ input::placeholder {
   color: #aaa;
 }
 input:focus {
-  border: 1px solid #00c6ff;
+  border: 1px solid #057fa0;
   background: rgba(255,255,255,0.25);
 }
 
@@ -123,7 +123,7 @@ button {
 
 /* Links + footer */
 .link {
-  color: #00c6ff;
+  color: #054658;
   cursor: pointer;
   text-decoration: none;
   font-size: 0.85rem;

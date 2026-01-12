@@ -61,9 +61,6 @@ if (!empty($_SESSION['auth_error'])) {
     <form method="POST" action="/backend/auth/signup_handler.php">
         <input type="hidden" name="action" value="Login">
 
-        <label>Username</label>
-        <input type="text" name="username" required>
-
         <label>Email address</label>
         <input type="email" name="email" placeholder="example@example.com" required>
 
