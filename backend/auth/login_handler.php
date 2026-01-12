@@ -1,10 +1,9 @@
 <?php
 declare(strict_types=1);
-session_start();
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../security/otp.php';
-require_once __DIR__ . '/../mail/Mailer.php';
+require_once __DIR__ . '/../mail/mailer.php';
 require_once __DIR__ . '/../bootstrap.php';
 
 // Get POST data
@@ -79,5 +78,5 @@ $stmt->execute([
 ]);
 
 // Redirect to OTP verification page
-header('Location: ../../verify_otp.php');
+header('Location: /otp_verify.php');
 exit;

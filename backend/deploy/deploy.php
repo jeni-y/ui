@@ -5,7 +5,6 @@ require_once __DIR__ . '/../middleware/csrf.php';
 require_once __DIR__ . '/../config/db.php'; // PostgreSQL connection
 require_once __DIR__ . '/../middleware/auth_check.php';
 
-session_start();
 
 // ------------------------
 // CSRF check

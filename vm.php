@@ -2,11 +2,13 @@
 session_start();
 require_once __DIR__. '/backend/bootstrap.php';
 require_once __DIR__ . '/../../backend/middleware/auth_check.php';
+
 /* ==========================
    INITIAL STATE
 ========================== */
 $vm_status = $_SESSION['vm_status'] ?? 'Not Created';
 $error = '';
+$launch_result = null;
 
 /* ==========================
    GENERATE SSH KEY
@@ -27,19 +29,13 @@ if (isset($_POST['generate_key_from_text'])) {
             $error = "Text must be at least 6 characters.";
         } else {
 
-            // ✅ Save VM config to SESSION
             $_SESSION['vm_name'] = $_POST['vm_name'];
             $_SESSION['region']  = $_POST['region'];
             $_SESSION['os']      = $_POST['os'];
 
-            // 🔐 Generate SSH Key
-
-
-            /* ========= CONFIG ========= */
-            $SSH_KEYGEN = '/usr/bin/ssh-keygen';   // fixed path (important)
+            $SSH_KEYGEN = '/usr/bin/ssh-keygen';
             $COMMENT    = $_SESSION['vm_name'] ?? 'vm-key';
 
-            /* ========= TEMP DIR ========= */
             $tmpDir = sys_get_temp_dir() . '/ssh_' . bin2hex(random_bytes(16));
             if (!mkdir($tmpDir, 0700, true)) {
                 http_response_code(500);
@@ -49,7 +45,6 @@ if (isset($_POST['generate_key_from_text'])) {
             $privatePath = $tmpDir . '/id_ed25519';
             $publicPath  = $privatePath . '.pub';
 
-            /* ========= GENERATE KEY ========= */
             $cmd = sprintf(
                 '%s -t ed25519 -N "" -C %s -f %s',
                 $SSH_KEYGEN,
@@ -63,28 +58,21 @@ if (isset($_POST['generate_key_from_text'])) {
                 exit('SSH key generation failed');
             }
 
-            /* ========= READ KEYS ========= */
             $privateKey = file_get_contents($privatePath);
             $publicKey  = trim(file_get_contents($publicPath));
 
-            /* ========= STORE PUBLIC KEY ========= */
-            $_SESSION['public_key'] = $publicKey;     // or DB / file
+            $_SESSION['public_key'] = $publicKey;
 
-            /* ========= SEND PRIVATE KEY ========= */
             header('Content-Type: application/octet-stream');
             header('Content-Disposition: attachment; filename="id_ed25519"');
             header('Content-Length: ' . strlen($privateKey));
             header('Cache-Control: no-store');
             echo $privateKey;
 
-            /* ========= CLEANUP ========= */
             unlink($privatePath);
             unlink($publicPath);
             rmdir($tmpDir);
             exit;
-
-
-           
         }
     }
 }
@@ -94,37 +82,20 @@ if (isset($_POST['generate_key_from_text'])) {
 ========================== */
 if (isset($_POST['launch_vm'])) {
 
-    if (
-        empty($_SESSION['vm_name']) ||
-        empty($_SESSION['region']) ||
-        empty($_SESSION['os'])
-    ) {
+    if (empty($_SESSION['vm_name']) || empty($_SESSION['region']) || empty($_SESSION['os'])) {
         $error = "VM configuration missing.";
-    }
-    elseif (empty($_SESSION['public_key'])) {
+    } elseif (empty($_SESSION['public_key'])) {
         $error = "Generate SSH key before launching the VM.";
     } else {
 
-        // ✅ FINAL VM DATA AVAILABLE HERE
-        #$vm_name = $_SESSION['vm_name'];
-        #$region  = $_SESSION['region'];
-        #$os      = $_SESSION['os'];
-        #$disk_size = "5G";
-        #$user_name = $_SESSION['vm_name'];
-        #$ssh_key = $_SESSION['public_key'];
-
         $data = [
-            "vm_name"   => $_SESSION['vm_name'],        
-            "disk_size" => "5G",                        
-            "user_name" => $_SESSION['vm_name'],        
-            "ssh_key"   => $_SESSION['public_key'],    
-            
+            "vm_name"   => $_SESSION['vm_name'],
+            "disk_size" => "5G",
+            "user_name" => $_SESSION['vm_name'],
+            "ssh_key"   => $_SESSION['public_key'],
         ];
 
-                // Initialize cURL
         $ch = curl_init("http://127.0.0.1:9000/create-vm");
-
-        // Set cURL options
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => json_encode($data),
@@ -132,18 +103,14 @@ if (isset($_POST['launch_vm'])) {
             CURLOPT_RETURNTRANSFER => true
         ]);
 
-        // 👉 Save to DB / Provision VM here
         $response = curl_exec($ch);
         if ($response === false) {
-            $error = 'cURL error: ' . curl_error($ch);
+            $launch_result = 'fail';
         } else {
             $_SESSION['vm_status'] = 'Running';
+            $launch_result = 'success';
         }
         curl_close($ch);
-
-        #$_SESSION['vm_status'] = 'Running';
-        #$_SESSION['launched_at'] = date('Y-m-d H:i:s');
-        #$vm_status = 'Running';
     }
 }
 ?>
@@ -161,34 +128,32 @@ header{background:#fff;padding:20px 50px;box-shadow:0 2px 6px rgba(0,0,0,.1);dis
 .card{background:#fff;border-radius:10px;padding:30px;margin-bottom:25px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
 h2,h3{margin-bottom:15px;color:#0073bb}
 label{font-weight:600;display:block;margin:15px 0 6px}
-input,select,textarea{width:100%;padding:12px;border-radius:6px;border:1px solid #ccc}
-textarea{resize:vertical}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.box{background:#f8f9fb;border:1px solid #ddd;border-radius:8px;padding:20px;text-align:center}
+input,select{width:100%;padding:12px;border-radius:6px;border:1px solid #ccc}
 button{background:#0073bb;color:#fff;border:none;padding:14px 26px;font-size:15px;border-radius:6px;cursor:pointer}
-button:hover{background:#005fa3}
+button:disabled{opacity:.6;cursor:not-allowed}
 .status{font-weight:700;padding:10px;border-radius:6px}
 .running{background:#e6ffed;color:#1a7f37}
 .pending{background:#fff4e5;color:#8a5700}
-.error{background:#ffecec;color:#a40000;padding:10px;border-radius:6px}
-footer{text-align:center;padding:20px;color:#777}
+
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center}
+.modal-box{background:#fff;padding:30px;border-radius:10px;text-align:center;min-width:300px}
+.success{color:#1a7f37;font-weight:700}
+.fail{color:#a40000;font-weight:700}
 </style>
 </head>
 
 <body>
 
 <header>
-    <h2>komba jenitta – IaaS (Ubuntu)</h2>
+    <h2> IaaS (Ubuntu)</h2>
     <div>Welcome, <?php echo htmlspecialchars($_SESSION['username'] ?? 'User'); ?></div>
 </header>
 
 <div class="container">
+<form method="POST">
 
-<!-- VM CONFIG + SSH -->
 <div class="card">
 <h3>Virtual Machine Configuration</h3>
-
-<form method="POST">
 
 <label>VM Name</label>
 <input type="text" name="vm_name" required>
@@ -205,23 +170,17 @@ footer{text-align:center;padding:20px;color:#777}
 <option>Ubuntu 22.04 LTS</option>
 </select>
 
-<h3 style="margin-top:30px">SSH Access</h3>
+<input type="hidden" name="user_text" value="default-secure-text">
 
 <?php if ($error): ?>
 <div class="error"><?php echo $error; ?></div>
 <?php endif; ?>
 
-<label>Enter Any Text / Passphrase</label>
-<textarea name="user_text" rows="4" required></textarea>
-
-<button name="generate_key_from_text">
+<button name="generate_key_from_text" style="margin-top:20px;">
 Generate & Download Private Key
 </button>
-
-</form>
 </div>
 
-<!-- LAUNCH -->
 <div class="card">
 <h3>Instance State</h3>
 
@@ -231,16 +190,61 @@ Generate & Download Private Key
 </span>
 </p>
 
-<form method="POST">
-<button name="launch_vm">Launch Virtual Machine</button>
+<button type="submit" name="launch_vm" disabled id="launchBtn">
+Launch Virtual Machine
+</button>
+</div>
+
 </form>
 </div>
 
+<div class="modal" id="launchModal">
+    <div class="modal-box" id="modalText">Launching VM... ⏳</div>
 </div>
 
-<footer>
-© 2025 CloudApp – Infrastructure as a Service
-</footer>
+<script>
+const vmName = document.querySelector('input[name="vm_name"]');
+const region = document.querySelector('select[name="region"]');
+const os = document.querySelector('select[name="os"]');
+const launchBtn = document.getElementById('launchBtn');
+const modal = document.getElementById('launchModal');
+const modalText = document.getElementById('modalText');
+
+const hasSSHKey = <?php echo isset($_SESSION['public_key']) ? 'true' : 'false'; ?>;
+
+function validateLaunch() {
+    launchBtn.disabled = !(
+        vmName.value.trim() &&
+        region.value &&
+        os.value &&
+        hasSSHKey
+    );
+}
+
+validateLaunch();
+vmName.addEventListener('input', validateLaunch);
+region.addEventListener('change', validateLaunch);
+os.addEventListener('change', validateLaunch);
+
+/* ✅ FIX: modal only for launch button */
+launchBtn.addEventListener('click', () => {
+    modal.style.display = 'flex';
+    modalText.innerHTML = 'Launching VM... ⏳';
+});
+
+<?php if ($launch_result): ?>
+modal.style.display = 'flex';
+modalText.innerHTML =
+"<?php echo $launch_result === 'success'
+? '<span class=\"success\">✅ VM Launched Successfully</span>'
+: '<span class=\"fail\">❌ Failed to Launch VM</span>'; ?>";
+
+setTimeout(() => {
+    modal.style.display = 'none';
+    window.location.href = window.location.pathname;
+}, 3000);
+<?php endif; ?>
+</script>
 
 </body>
 </html>

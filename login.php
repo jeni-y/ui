@@ -1,20 +1,12 @@
 <?php
 session_start();
-
 $message = '';
 $type = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-    if ($_POST['action'] === 'login') {
-        $email = trim($_POST['email']);
-        $password = trim($_POST['password']);
-    }
-
-    if ($_POST['action'] === 'signup') {
-        $email = trim($_POST['email']);
-
-    }
+if (!empty($_SESSION['auth_error'])) {
+    $message = $_SESSION['auth_error'];
+    $type = 'error';
+    unset($_SESSION['auth_error']); // clear after showing
 }
 ?>
 <!DOCTYPE html>
@@ -22,10 +14,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8">
 <title>Authentication</title>
-</head>
 <link rel="stylesheet" href="assets/css/login.css">
+</head>
 <body>
-
 <div class="card">
 
 <?php if (!empty($message)): ?>
@@ -37,8 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h1>Welcome back!</h1>
     <p class="subtitle">Sign into your account</p>
 
-    <form method="POST" action = "backend/auth/signup_handler.php">
-        <input type="hidden" name="action" value="login">
+    <form method="POST" action="/backend/auth/login_handler.php">
+        <input type="hidden" name="action" value="Sign in">
 
         <label>Email address</label>
         <input type="email" name="email" required>
@@ -46,42 +37,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <label>Password</label>
         <input type="password" name="password" required>
 
-        <button class="primary">Log in</button>
+        <button class="primary">Sign in</button>
     </form>
 
     <div class="or"><span>or</span></div>
-
     <button class="google" onclick="googleAuth()">Continue with Google</button>
 
     <div class="footer">
-        Already have an account Login
-        <span class="link" onclick="showSignup()">Login</span>
+        Don’t have an account?
+        <span class="link" onclick="showSignup()">Sign in</span>
     </div>
 </div>
 
 <!-- SIGN UP -->
 <div id="signupBox" class="hidden">
-    <h1>Login</h1>
+    <h1>Create Account</h1>
     <p class="subtitle">Join over 6 million others learning cyber security.</p>
 
     <button class="google" onclick="googleAuth()">Continue with Google</button>
 
     <div class="or"><span>or</span></div>
 
-    <form method="POST" action = "backend/auth/login_handler.php">
-        <input type="hidden" name="action" value="signup">
+    <form method="POST" action="/backend/auth/signup_handler.php">
+        <input type="hidden" name="action" value="Login">
+
+        <label>Username</label>
+        <input type="text" name="username" required>
 
         <label>Email address</label>
         <input type="email" name="email" placeholder="example@example.com" required>
+
+        <label>Password</label>
+        <input type="password" name="password" required>
 
         <button class="primary">Continue</button>
     </form>
 
     <div class="footer">
-        By signing up, you agree to our
-        <a href="#" class="link">Terms and Conditions</a><br><br>
         Already have an account?
-        <span class="link" onclick="showLogin()">Log in</span>
+        <span class="link" onclick="showLogin()">Login</span>
     </div>
 </div>
 
@@ -92,16 +86,13 @@ function showSignup(){
     document.getElementById('loginBox').classList.add('hidden');
     document.getElementById('signupBox').classList.remove('hidden');
 }
-
 function showLogin(){
     document.getElementById('signupBox').classList.add('hidden');
     document.getElementById('loginBox').classList.remove('hidden');
 }
-
 function googleAuth(){
     window.location.href = "https://accounts.google.com/";
 }
 </script>
-
 </body>
 </html>

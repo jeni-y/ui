@@ -1,5 +1,5 @@
 <?php
-session_start();
+
 require_once __DIR__. '/backend/bootstrap.php';
 $username = $_SESSION['username'] ?? 'User';
 ?>

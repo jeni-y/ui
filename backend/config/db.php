@@ -3,7 +3,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 
 // Path outside project folder
-$credPath = '../../../../db_credentials.json';
+$credPath = __DIR__. '/../../../db_credentials.json';
 
 // Load and decode JSON
 $creds = json_decode(file_get_contents($credPath), true);
@@ -21,7 +21,7 @@ $dsn = sprintf(
 );
 
 // Create PDO instance
-$db = new PDO(
+$pdo = new PDO(
     $dsn,
     $creds['user'],
     $creds['password'],
