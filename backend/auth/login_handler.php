@@ -30,7 +30,9 @@ if (!$user['email_verified']) {
     exit('Email not verified. Please check your inbox.');
 }
 
-// Generate OTP
+/* =========================
+   Generate OTP
+========================= */
 $otp = generateOtp();
 
 // Store OTP in database
@@ -48,9 +50,33 @@ if (!Mailer::send($email, 'Login OTP', "Your login OTP: $otp")) {
     exit('Failed to send OTP email. Try again later.');
 }
 
-// Store user ID in session
+/* =========================
+   Prepare session for OTP verification
+========================= */
 $_SESSION['otp_user'] = $user['id'];
-$_SESSION['otp_expires'] = time() + 300; // Store expiration timestamp
+$_SESSION['otp_expires'] = time() + 300; // 5 minutes expiry
+
+// Generate fingerprint now
+$fingerprint = hash(
+    'sha256',
+    ($_SERVER['HTTP_USER_AGENT'] ?? '') . ($_SERVER['REMOTE_ADDR'] ?? '')
+);
+
+// Reserve session row in DB (will be validated after OTP)
+$sessionId = session_id();
+$stmt = $pdo->prepare(
+    "INSERT INTO user_sessions (user_id, session_id, fingerprint, expires_at)
+     VALUES (:uid, :sid, :fp, :exp)
+     ON CONFLICT (session_id) DO UPDATE
+     SET fingerprint = EXCLUDED.fingerprint,
+         expires_at = EXCLUDED.expires_at"
+);
+$stmt->execute([
+    'uid' => $user['id'],
+    'sid' => $sessionId,
+    'fp'  => $fingerprint,
+    'exp' => date('Y-m-d H:i:s', time() + 1800) // 30 min expiry
+]);
 
 // Redirect to OTP verification page
 header('Location: ../../verify_otp.php');
