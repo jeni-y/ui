@@ -37,7 +37,7 @@ if (!empty($_SESSION['auth_error'])) {
         <label>Password</label>
         <input type="password" name="password" required>
 
-        <button class="primary">Sign in</button>
+        <button class="primary">Login</button>
     </form>
 
     <div class="or"><span>or</span></div>
