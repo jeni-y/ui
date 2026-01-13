@@ -1,6 +1,19 @@
 <?php
-session_start();
+declare(strict_types=1);
+
+require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/../config/db.php';
+
+if (!empty($_SESSION['user_id'])) {
+    $pdo->prepare(
+        'DELETE FROM remember_tokens WHERE user_id = :uid'
+    )->execute(['uid' => $_SESSION['user_id']]);
+}
+
+setcookie('remember_token', '', time() - 3600, '/');
+
+$_SESSION = [];
 session_destroy();
-require_once __DIR__. '/../bootstrap.php';
-setcookie(session_name(), '', time() - 3600);
-header("Location: /login.php");
+
+header('Location: /login.php');
+exit;

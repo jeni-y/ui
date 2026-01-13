@@ -4,7 +4,7 @@ declare(strict_types=1);
 session_start();
 
 require_once __DIR__ . '/../config/db.php';
-//require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/../bootstrap.php';
 
 /* ---------------- Session Check ---------------- */
 if (empty($_SESSION['otp_user'])) {
@@ -77,6 +77,45 @@ try {
     $pdo->rollBack();
     exit('Verification failed. Try again.');
 }
+
+/* ---------------- CREATE AUTHENTICATED SESSION ---------------- */
+session_regenerate_id(true);
+
+$_SESSION['user_id'] = $userId;
+$_SESSION['authenticated'] = true;
+
+/* ---------------- SESSION FINGERPRINT ---------------- */
+$_SESSION['session_fingerprint'] = hash(
+    'sha256',
+    ($_SERVER['HTTP_USER_AGENT'] ?? '') .
+    ($_SERVER['REMOTE_ADDR'] ?? '')
+);
+
+$_SESSION['last_activity'] = time();
+
+/* ================= CREATE REMEMBER-ME TOKEN ================= */
+$rememberToken = bin2hex(random_bytes(32));
+$rememberHash  = hash('sha256', $rememberToken);
+
+$fingerprint = $_SESSION['session_fingerprint'];
+
+$pdo->prepare(
+    'INSERT INTO remember_tokens (user_id, token_hash, fingerprint, expires_at)
+     VALUES (:uid, :hash, :fp, :exp)'
+)->execute([
+    'uid'  => $userId,
+    'hash' => $rememberHash,
+    'fp'   => $fingerprint,
+    'exp'  => date('Y-m-d H:i:s', time() + 30*24*60*60)
+]);
+
+setcookie('remember_token', $rememberToken, [
+    'expires'  => time() + 30*24*60*60,
+    'path'     => '/',
+    'secure'   => false, // true when HTTPS
+    'httponly' => true,
+    'samesite' => 'Strict'
+]);
 
 /* ---------------- Secure Login Session ---------------- */
 session_regenerate_id(true);
