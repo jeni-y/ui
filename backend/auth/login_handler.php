@@ -11,7 +11,8 @@ $email = filter_var(trim($_POST['email'] ?? ''), FILTER_VALIDATE_EMAIL);
 $password = $_POST['password'] ?? '';
 
 if (!$email || !$password) {
-    exit('Email and password are required.');
+    $_SESSION['auth_error'] = 'Email and password are required.';
+    exit;
 }
 
 // Fetch user securely
@@ -22,11 +23,13 @@ $stmt->execute(['email' => $email]);
 $user = $stmt->fetch();
 
 if (!$user || !password_verify($password, $user['password'])) {
-    exit('Invalid credentials');
+    $_SESSION['auth_error'] = 'Invalid credentials';
+    exit;
 }
 
 if (!$user['email_verified']) {
-    exit('Email not verified. Please check your inbox.');
+    $_SESSION['auth_error'] = 'Email not verified. Please check your inbox.';
+    exit;
 }
 
 /* =========================
@@ -46,7 +49,8 @@ $insert->execute([
 
 // Send OTP via email
 if (!Mailer::send($email, 'Login OTP', "Your login OTP: $otp")) {
-    exit('Failed to send OTP email. Try again later.');
+    $_SESSION['auth_error'] = 'Failed to send OTP email. Try again later.';
+    exit;
 }
 
 /* =========================

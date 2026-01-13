@@ -2,10 +2,6 @@
 
 require_once __DIR__. '/backend/bootstrap.php';
 require_once __DIR__ . '/../../backend/middleware/auth_check.php';
-if (empty($_SESSION['username'])) {
-    header("Location: login.php");
-    exit;
-}
 
 /* VM STATE */
 $vm_status = $_SESSION['vm_status'] ?? 'Not Created';

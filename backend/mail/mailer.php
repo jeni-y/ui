@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../config/env.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
@@ -9,12 +10,21 @@ use PHPMailer\PHPMailer\Exception;
 
 class Mailer
 {
-    public static function send(string $to, string $subject, string $body): void
+    /**
+     * Send an email using PHPMailer.
+     *
+     * @param string $to Recipient email
+     * @param string $subject Email subject
+     * @param string $body Email body
+     * @return bool True if sent successfully, false otherwise
+     */
+    public static function send(string $to, string $subject, string $body): bool
     {
-        // 🔒 Validate env first (VERY IMPORTANT)
+        // 🔒 Validate env first
         foreach (['SMTP_HOST','SMTP_USER','SMTP_PASS','SMTP_PORT','SMTP_FROM'] as $key) {
             if (empty($_ENV[$key])) {
-                throw new RuntimeException("Missing env variable: $key");
+                error_log("Missing env variable: $key");
+                return false;
             }
         }
 
@@ -25,8 +35,8 @@ class Mailer
             $mail->isSMTP();
             $mail->Host       = $_ENV['SMTP_HOST'];
             $mail->SMTPAuth   = true;
-            $mail->Username   = $_ENV['SMTP_USER'];   // apikey
-            $mail->Password   = $_ENV['SMTP_PASS'];   // SG.xxxxx
+            $mail->Username   = $_ENV['SMTP_USER'];   // usually "apikey" for SendGrid
+            $mail->Password   = $_ENV['SMTP_PASS'];   // SG.xxxxx API key
             $mail->Port       = (int) $_ENV['SMTP_PORT'];
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
 
@@ -39,10 +49,16 @@ class Mailer
             $mail->Subject = $subject;
             $mail->Body    = $body;
 
-            $mail->send();
+            if ($mail->send()) {
+                error_log("MAIL SUCCESS: sent to $to");
+                return true;
+            } else {
+                error_log("MAIL ERROR: " . $mail->ErrorInfo);
+                return false;
+            }
         } catch (Exception $e) {
-            error_log('MAIL ERROR: ' . $mail->ErrorInfo);
-            throw new RuntimeException('Email send failed');
+            error_log("MAIL EXCEPTION: " . $e->getMessage());
+            return false;
         }
     }
 }

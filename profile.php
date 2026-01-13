@@ -1,10 +1,7 @@
 <?php
 
 require_once __DIR__. '/backend/bootstrap.php';
-if (empty($_SESSION['username'])) {
-    header("Location: login.php");
-    exit;
-}
+require_once __DIR__. '/backend/middleware/auth_check';
 
 // Example: fetch user details from database
 // (replace with your actual DB connection and query)
