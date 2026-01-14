@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-
+//ob_start();
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../security/otp.php';
@@ -15,13 +15,13 @@ $password = $_POST['password'] ?? '';
 
 if (!$email || !$password) {
     $_SESSION['auth_error'] = 'Email and password are required.';
-    header('Location: /signup.php');
+    header('Location: /sigin.php');
     exit;
 }
 
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $_SESSION['auth_error'] = 'Invalid email address.';
-    header('Location: /signup.php');
+    header('Location: /sigin.php');
     exit;
 }
 
@@ -32,7 +32,7 @@ $username = explode('@', $email)[0]; // example: ajay123@gmail.com → ajay123
 
 if (strlen($username) > 50) {
     $_SESSION['auth_error'] = 'Derived username is too long.';
-    header('Location: /login.php');
+    header('Location: /sigin.php');
     exit;
 }
 
@@ -60,14 +60,15 @@ $hash = password_hash($password, PASSWORD_DEFAULT);
 ========================= */
 $stmt = $pdo->prepare(
     'INSERT INTO users (username, email, password, email_verified)
-     VALUES (:username, :email, :password, false)'
+     VALUES (:username, :email, :password, :email_verified::boolean)'
 );
 
-$stmt->execute([
-    'username' => $username,
-    'email'    => $email,
-    'password' => $hash
-]);
+$stmt->bindValue(':username', $username, PDO::PARAM_STR);
+$stmt->bindValue(':email', $email, PDO::PARAM_STR);
+$stmt->bindValue(':password', $hash, PDO::PARAM_STR);
+$stmt->bindValue(':email_verified', 0, PDO::PARAM_INT); // ✅ 0 = false
+
+$stmt->execute();
 
 $userId = (int)$pdo->lastInsertId();
 
@@ -98,7 +99,7 @@ $mailSent = Mailer::send(
 
 if (!$mailSent) {
     $_SESSION['auth_error'] = 'Failed to send verification email.';
-    header('Location: /login.php');
+    header('Location: /sigin.php');
     exit;
 }
 
@@ -116,3 +117,4 @@ $_SESSION['otp_expires'] = time() + 300;
 ========================= */
 header('Location: /otp_verify.php');
 exit;
+//ob_end_flush();

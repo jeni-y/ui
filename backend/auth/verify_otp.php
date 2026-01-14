@@ -64,7 +64,6 @@ if (new DateTimeImmutable() > new DateTimeImmutable($otpRow['expires_at'])) {
 if (!password_verify($otpInput, $otpRow['otp_hash'])) {
     $_SESSION['otp_attempts']++;
     $_SESSION['auth_error'] = 'Invalid OTP.';
-    header('Location: /otp_verify.php');
     exit;
 }
 
@@ -130,7 +129,7 @@ setcookie('remember_token', $rememberToken, [
 ]);
 
 /* ---------------- Secure Login Session ---------------- */
-session_regenerate_id(true);
+//session_regenerate_id(true);
 
 $_SESSION['user_id'] = $userId;
 $_SESSION['authenticated'] = true;

@@ -34,9 +34,20 @@ require_once __DIR__ . '/config/db.php';
 /* =========================
    SESSION TIMEOUT (30 min)
 ========================= */
-if (
+/*if (
     isset($_SESSION['authenticated']) &&
     !empty($_SESSION['last_activity']) &&
+    time() - $_SESSION['last_activity'] > 1800
+) {
+    session_unset();
+    session_destroy();
+    header('Location: /login.php');
+    exit;
+}*/
+if (
+    isset($_SESSION['authenticated']) &&
+    $_SESSION['authenticated'] === true &&
+    isset($_SESSION['last_activity']) &&
     time() - $_SESSION['last_activity'] > 1800
 ) {
     session_unset();

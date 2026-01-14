@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-
+ob_start();
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../security/otp.php';
@@ -98,3 +98,4 @@ $_SESSION['otp_expires'] = time() + 300;
 ========================= */
 header('Location: /otp_verify.php');
 exit;
+ob_end_flush();
