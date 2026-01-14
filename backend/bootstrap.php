@@ -1,32 +1,65 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/config/db.php';
-require_once __DIR__ . '/middleware/csrf.php';
-/* =========================
-   Secure session config
-========================= */
+if ($_ENV['APP_ENV'] ?? 'dev' === 'dev') {
+    ini_set('display_errors', '1');
+    ini_set('display_startup_errors', '1');
+    error_reporting(E_ALL);
+}
+
+/* =====================================================
+   BOOTSTRAP — INCLUDE FIRST IN EVERY FILE
+   HTTP SAFE VERSION (NO HTTPS REQUIRED)
+===================================================== */
 ini_set('session.use_only_cookies', '1');
 ini_set('session.use_strict_mode', '1');
-
+/* =========================
+   SESSION CONFIG
+   (MUST BE BEFORE session_start)
+========================= */
 if (session_status() === PHP_SESSION_NONE) {
+
     session_set_cookie_params([
-        'lifetime' => 0,               // session dies on browser close
+        'lifetime' => 0,       // browser close
         'path'     => '/',
-        'secure'   => false,           // true in HTTPS
+        'secure'   => false,   // ✅ HTTP ONLY
         'httponly' => true,
         'samesite' => 'Strict'
     ]);
+
     session_start();
 }
 
 /* =========================
-   Security headers
+   DATABASE + CSRF
+========================= */
+require_once __DIR__ . '/config/db.php';
+
+
+/* =========================
+   SESSION TIMEOUT (30 min)
+========================= */
+if (
+    isset($_SESSION['authenticated']) &&
+    !empty($_SESSION['last_activity']) &&
+    time() - $_SESSION['last_activity'] > 1800
+) {
+    session_unset();
+    session_destroy();
+    header('Location: /login.php');
+    exit;
+}
+
+$_SESSION['last_activity'] = time();
+
+require_once __DIR__ . '/middleware/csrf.php';
+/* =========================
+   SECURITY HEADERS (HTTP SAFE)
 ========================= */
 header("X-Frame-Options: DENY");
 header("X-Content-Type-Options: nosniff");
 header("Referrer-Policy: strict-origin-when-cross-origin");
-header("Content-Security-Policy: default-src 'self'");
+header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'self' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'");
 
 /* =========================
    AUTO LOGIN USING REMEMBER TOKEN
@@ -53,11 +86,12 @@ if (
         'hash' => $tokenHash,
         'fp'   => $fingerprint
     ]);
-    $row = $stmt->fetch();
+
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($row && strtotime($row['expires_at']) > time()) {
 
-        // 🔁 Rotate token
+        /* 🔁 TOKEN ROTATION */
         $newToken = bin2hex(random_bytes(32));
         $newHash  = hash('sha256', $newToken);
 
@@ -68,19 +102,19 @@ if (
              WHERE id = :id'
         )->execute([
             'hash' => $newHash,
-            'exp'  => date('Y-m-d H:i:s', time() + 30*24*60*60),
+            'exp'  => date('Y-m-d H:i:s', time() + 30 * 24 * 60 * 60),
             'id'   => $row['id']
         ]);
 
         setcookie('remember_token', $newToken, [
-            'expires'  => time() + 30*24*60*60,
+            'expires'  => time() + 30 * 24 * 60 * 60,
             'path'     => '/',
-            'secure'   => false,
+            'secure'   => false, // ✅ HTTP SAFE
             'httponly' => true,
             'samesite' => 'Strict'
         ]);
 
-        // 🔐 Create NEW authenticated session
+        /* 🔐 NEW AUTH SESSION */
         session_regenerate_id(true);
 
         $_SESSION['user_id'] = (int)$row['user_id'];
@@ -88,7 +122,7 @@ if (
         $_SESSION['session_fingerprint'] = $fingerprint;
         $_SESSION['last_activity'] = time();
 
-        // Store session in DB (reuse your system)
+        /* OPTIONAL: DB SESSION TRACKING */
         $pdo->prepare(
             'INSERT INTO user_sessions (user_id, session_id, fingerprint, expires_at)
              VALUES (:uid, :sid, :fp, :exp)'

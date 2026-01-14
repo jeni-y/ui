@@ -1,14 +1,19 @@
 <?php
 declare(strict_types=1);
 
-session_start();
-
-require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/../config/db.php';
 
+if ($_ENV['APP_ENV'] ?? 'dev' === 'dev') {
+    ini_set('display_errors', '1');
+    ini_set('display_startup_errors', '1');
+    error_reporting(E_ALL);
+}
 /* ---------------- Session Check ---------------- */
 if (empty($_SESSION['otp_user'])) {
-    exit('Session expired. Please login again.');
+    $_SESSION['auth_error'] = 'Session expired. Please login again.';
+    header('Location: /login.php');
+    exit;
 }
 
 $userId = (int) $_SESSION['otp_user'];
@@ -16,18 +21,23 @@ $userId = (int) $_SESSION['otp_user'];
 /* ---------------- Rate Limiting (Session-based) ---------------- */
 $_SESSION['otp_attempts'] ??= 0;
 if ($_SESSION['otp_attempts'] >= 5) {
-    exit('Too many failed attempts. Please login again.');
+    $_SESSION['auth_error'] = 'Too many failed attempts. Please login again.';
+    header('Location: /login.php');
+    exit;
 }
 
 /* ---------------- Handle OTP Submission ---------------- */
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    exit('Invalid request.');
+    $_SESSION['auth_error'] = 'Invalid request.';
+    header('Location: /login.php');
+    exit;
 }
 
 $otpInput = trim($_POST['otp'] ?? '');
 
 if ($otpInput === '' || !ctype_digit($otpInput)) {
-    exit('Invalid OTP format.');
+    $_SESSION['auth_error'] = 'Invalid OTP format.';
+    exit;
 }
 
 /* ---------------- Fetch Latest OTP ---------------- */
@@ -42,19 +52,23 @@ $stmt->execute(['user_id' => $userId]);
 $otpRow = $stmt->fetch();
 
 if (!$otpRow) {
-    exit('OTP not found.');
+    $_SESSION['auth_error'] = 'OTP not found.';
+    exit;
 }
 
 /* ---------------- Expiry Check ---------------- */
 if (new DateTimeImmutable() > new DateTimeImmutable($otpRow['expires_at'])) {
     cleanupOtpSession();
-    exit('OTP expired. Please login again.');
+    $_SESSION['auth_error'] = 'OTP expired. Please login again.';
+    header('Location: /login.php');
+    exit;
 }
 
 /* ---------------- Verify OTP ---------------- */
 if (!password_verify($otpInput, $otpRow['otp_hash'])) {
     $_SESSION['otp_attempts']++;
-    exit('Invalid OTP.');
+    $_SESSION['auth_error'] = 'Invalid OTP.';
+    exit;
 }
 
 /* ---------------- OTP VALID → AUTHENTICATE USER ---------------- */
@@ -75,7 +89,8 @@ try {
 
 } catch (Throwable $e) {
     $pdo->rollBack();
-    exit('Verification failed. Try again.');
+    $_SESSION['auth_error'] = 'Verification failed. Try again.';
+    exit;
 }
 
 /* ---------------- CREATE AUTHENTICATED SESSION ---------------- */

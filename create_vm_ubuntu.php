@@ -1,7 +1,7 @@
 <?php
 
 require_once __DIR__. '/backend/bootstrap.php';
-require_once __DIR__ . '/../../backend/middleware/auth_check.php';
+require_once __DIR__ . '/backend/middleware/auth_check.php';
 
 /* VM STATE */
 $vm_status = $_SESSION['vm_status'] ?? 'Not Created';

@@ -1,7 +1,7 @@
 <?php
 
 require_once __DIR__. '/backend/bootstrap.php';
-require_once __DIR__ . '/../../backend/middleware/auth_check.php';
+require_once __DIR__ . '/backend/middleware/auth_check.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $projectName = $_POST['project_name'];

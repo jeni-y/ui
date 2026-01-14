@@ -1,86 +1,97 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../security/otp.php';
 require_once __DIR__ . '/../mail/mailer.php';
-require_once __DIR__ . '/../bootstrap.php';
 
-// Get POST data
-$email = filter_var(trim($_POST['email'] ?? ''), FILTER_VALIDATE_EMAIL);
+if ($_ENV['APP_ENV'] ?? 'dev' === 'dev') {
+    ini_set('display_errors', '1');
+    ini_set('display_startup_errors', '1');
+    error_reporting(E_ALL);
+}
+/* =========================
+   1. Validate Input
+========================= */
+$email = strtolower(trim($_POST['email'] ?? ''));
 $password = $_POST['password'] ?? '';
 
 if (!$email || !$password) {
     $_SESSION['auth_error'] = 'Email and password are required.';
+    header('Location: /login.php');
     exit;
 }
 
-// Fetch user securely
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $_SESSION['auth_error'] = 'Invalid email address.';
+    header('Location: /login.php');
+    exit;
+}
+
+/* =========================
+   2. Fetch User
+========================= */
 $stmt = $pdo->prepare(
     'SELECT id, password, email_verified FROM users WHERE email = :email'
 );
 $stmt->execute(['email' => $email]);
-$user = $stmt->fetch();
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$user || !password_verify($password, $user['password'])) {
-    $_SESSION['auth_error'] = 'Invalid credentials';
+    $_SESSION['auth_error'] = 'Invalid email or password.';
+    header('Location: /login.php');
     exit;
 }
 
 if (!$user['email_verified']) {
-    $_SESSION['auth_error'] = 'Email not verified. Please check your inbox.';
+    $_SESSION['auth_error'] = 'Please verify your email first.';
+    header('Location: /login.php');
     exit;
 }
+session_regenerate_id(true);
 
 /* =========================
-   Generate OTP
+   3. Generate OTP
 ========================= */
 $otp = generateOtp();
 
-// Store OTP in database
-$insert = $pdo->prepare(
-    'INSERT INTO email_otps (user_id, otp_hash, expires_at) VALUES (:user_id, :otp_hash, :expires_at)'
+$otpStmt = $pdo->prepare(
+    'INSERT INTO email_otps (user_id, otp_hash, expires_at)
+     VALUES (:uid, :hash, :exp)'
 );
-$insert->execute([
-    'user_id'    => $user['id'],
-    'otp_hash'   => password_hash($otp, PASSWORD_DEFAULT),
-    'expires_at' => otpExpiry()
+$otpStmt->execute([
+    'uid'  => $user['id'],
+    'hash' => password_hash($otp, PASSWORD_DEFAULT),
+    'exp'  => otpExpiry()
 ]);
 
-// Send OTP via email
-if (!Mailer::send($email, 'Login OTP', "Your login OTP: $otp")) {
-    $_SESSION['auth_error'] = 'Failed to send OTP email. Try again later.';
+/* =========================
+   4. Send OTP Email
+========================= */
+$mailSent = Mailer::send(
+    $email,
+    'Your Login OTP',
+    "Your OTP is: {$otp}\n\nValid for 5 minutes."
+);
+
+if (!$mailSent) {
+    $_SESSION['auth_error'] = 'Failed to send OTP email.';
+    header('Location: /login.php');
     exit;
 }
 
 /* =========================
-   Prepare session for OTP verification
+   5. Prepare OTP Session
 ========================= */
-$_SESSION['otp_user'] = $user['id'];
-$_SESSION['otp_expires'] = time() + 300; // 5 minutes expiry
 
-// Generate fingerprint now
-$fingerprint = hash(
-    'sha256',
-    ($_SERVER['HTTP_USER_AGENT'] ?? '') . ($_SERVER['REMOTE_ADDR'] ?? '')
-);
 
-// Reserve session row in DB (will be validated after OTP)
-$sessionId = session_id();
-$stmt = $pdo->prepare(
-    "INSERT INTO user_sessions (user_id, session_id, fingerprint, expires_at)
-     VALUES (:uid, :sid, :fp, :exp)
-     ON CONFLICT (session_id) DO UPDATE
-     SET fingerprint = EXCLUDED.fingerprint,
-         expires_at = EXCLUDED.expires_at"
-);
-$stmt->execute([
-    'uid' => $user['id'],
-    'sid' => $sessionId,
-    'fp'  => $fingerprint,
-    'exp' => date('Y-m-d H:i:s', time() + 1800) // 30 min expiry
-]);
+$_SESSION['otp_user']    = $user['id'];
+$_SESSION['otp_stage']   = 'login';
+$_SESSION['otp_expires'] = time() + 300;
 
-// Redirect to OTP verification page
+/* =========================
+   6. Redirect
+========================= */
 header('Location: /otp_verify.php');
 exit;

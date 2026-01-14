@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/backend/bootstrap.php';
+
+//require_once __DIR__ . '/backend/bootstrap.php';
 
 /* If user has no OTP session, redirect */
 if (empty($_SESSION['otp_user'])) {
@@ -25,6 +26,7 @@ if (empty($_SESSION['otp_user'])) {
     <h2>Verify OTP</h2>
     <p>Enter the 6-digit OTP sent to your email</p>
 
+    <!-- OTP input form -->
     <form method="POST" action="/backend/auth/verify_otp.php" autocomplete="off">
         <input
             type="text"
@@ -35,13 +37,17 @@ if (empty($_SESSION['otp_user'])) {
             placeholder="••••••"
             required
         >
-
         <button type="submit">Verify</button>
     </form>
 
     <div class="hint">
         OTP valid for 5 minutes
     </div>
+
+    <!-- Resend OTP form -->
+    <form method="POST" action="/backend/auth/resend_otp.php" style="margin-top:1em;">
+        <button type="submit">Resend OTP</button>
+    </form>
 </div>
 
 </body>
