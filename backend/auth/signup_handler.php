@@ -5,12 +5,8 @@ require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../security/otp.php';
 require_once __DIR__ . '/../mail/mailer.php';
+require_once __DIR__ . '/../error_log.php';
 
-if ($_ENV['APP_ENV'] ?? 'dev' === 'dev') {
-    ini_set('display_errors', '1');
-    ini_set('display_startup_errors', '1');
-    error_reporting(E_ALL);
-}
 /* =========================
    1. Validate Input
 ========================= */
@@ -36,7 +32,7 @@ $username = explode('@', $email)[0]; // example: ajay123@gmail.com → ajay123
 
 if (strlen($username) > 50) {
     $_SESSION['auth_error'] = 'Derived username is too long.';
-    header('Location: /signup.php');
+    header('Location: /login.php');
     exit;
 }
 
@@ -102,7 +98,7 @@ $mailSent = Mailer::send(
 
 if (!$mailSent) {
     $_SESSION['auth_error'] = 'Failed to send verification email.';
-    header('Location: /signup.php');
+    header('Location: /login.php');
     exit;
 }
 

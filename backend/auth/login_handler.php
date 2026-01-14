@@ -5,12 +5,8 @@ require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../security/otp.php';
 require_once __DIR__ . '/../mail/mailer.php';
+require_once __DIR__ . '/../error_log.php';
 
-if ($_ENV['APP_ENV'] ?? 'dev' === 'dev') {
-    ini_set('display_errors', '1');
-    ini_set('display_startup_errors', '1');
-    error_reporting(E_ALL);
-}
 /* =========================
    1. Validate Input
 ========================= */
@@ -29,42 +25,49 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     exit;
 }
 
-/* =========================
-   2. Fetch User
-========================= */
-$stmt = $pdo->prepare(
-    'SELECT id, password, email_verified FROM users WHERE email = :email'
-);
-$stmt->execute(['email' => $email]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
+try {
+    /* =========================
+       2. Fetch User
+    ========================= */
+    $stmt = $pdo->prepare(
+        'SELECT id, password, email_verified FROM users WHERE email = :email'
+    );
+    $stmt->execute(['email' => $email]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$user || !password_verify($password, $user['password'])) {
-    $_SESSION['auth_error'] = 'Invalid email or password.';
+    if (!$user || !password_verify($password, $user['password'])) {
+        $_SESSION['auth_error'] = 'Invalid email or password.';
+        header('Location: /login.php');
+        exit;
+    }
+
+    if (!$user['email_verified']) {
+        $_SESSION['auth_error'] = 'Please verify your email first.';
+        header('Location: /login.php');
+        exit;
+    }
+
+    /* =========================
+       3. Generate OTP
+    ========================= */
+    $otp = generateOtp();
+
+    $otpStmt = $pdo->prepare(
+        'INSERT INTO email_otps (user_id, otp_hash, expires_at)
+         VALUES (:uid, :hash, :exp)'
+    );
+    $otpStmt->execute([
+        'uid'  => $user['id'],
+        'hash' => password_hash($otp, PASSWORD_DEFAULT),
+        'exp'  => otpExpiry()
+    ]);
+
+} catch (PDOException $e) {
+    error_log($e->getMessage()); // ✅ log error safely
+    $_SESSION['auth_error'] = 'Internal error. Please try again.';
     header('Location: /login.php');
     exit;
 }
-
-if (!$user['email_verified']) {
-    $_SESSION['auth_error'] = 'Please verify your email first.';
-    header('Location: /login.php');
-    exit;
-}
-session_regenerate_id(true);
-
-/* =========================
-   3. Generate OTP
-========================= */
-$otp = generateOtp();
-
-$otpStmt = $pdo->prepare(
-    'INSERT INTO email_otps (user_id, otp_hash, expires_at)
-     VALUES (:uid, :hash, :exp)'
-);
-$otpStmt->execute([
-    'uid'  => $user['id'],
-    'hash' => password_hash($otp, PASSWORD_DEFAULT),
-    'exp'  => otpExpiry()
-]);
 
 /* =========================
    4. Send OTP Email
@@ -84,7 +87,7 @@ if (!$mailSent) {
 /* =========================
    5. Prepare OTP Session
 ========================= */
-
+session_regenerate_id(true);
 
 $_SESSION['otp_user']    = $user['id'];
 $_SESSION['otp_stage']   = 'login';

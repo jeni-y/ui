@@ -1,5 +1,5 @@
 <?php
-
+/*
 $message = '';
 $type = '';
 
@@ -8,6 +8,7 @@ if (!empty($_SESSION['auth_error'])) {
     $type = 'error';
     unset($_SESSION['auth_error']); // clear after showing
 }
+*/
 ?>
 <!DOCTYPE html>
 <html lang="en">

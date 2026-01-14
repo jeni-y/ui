@@ -1,11 +1,6 @@
 <?php
 declare(strict_types=1);
 
-if ($_ENV['APP_ENV'] ?? 'dev' === 'dev') {
-    ini_set('display_errors', '1');
-    ini_set('display_startup_errors', '1');
-    error_reporting(E_ALL);
-}
 
 /* =====================================================
    BOOTSTRAP — INCLUDE FIRST IN EVERY FILE
@@ -59,7 +54,7 @@ require_once __DIR__ . '/middleware/csrf.php';
 header("X-Frame-Options: DENY");
 header("X-Content-Type-Options: nosniff");
 header("Referrer-Policy: strict-origin-when-cross-origin");
-header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'self' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://your-cdn.com; connect-src 'self' https://api.example.com;");
 
 /* =========================
    AUTO LOGIN USING REMEMBER TOKEN

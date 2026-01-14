@@ -3,12 +3,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../error_log.php';
 
-if ($_ENV['APP_ENV'] ?? 'dev' === 'dev') {
-    ini_set('display_errors', '1');
-    ini_set('display_startup_errors', '1');
-    error_reporting(E_ALL);
-}
 /* ---------------- Session Check ---------------- */
 if (empty($_SESSION['otp_user'])) {
     $_SESSION['auth_error'] = 'Session expired. Please login again.';
@@ -68,6 +64,7 @@ if (new DateTimeImmutable() > new DateTimeImmutable($otpRow['expires_at'])) {
 if (!password_verify($otpInput, $otpRow['otp_hash'])) {
     $_SESSION['otp_attempts']++;
     $_SESSION['auth_error'] = 'Invalid OTP.';
+    header('Location: /otp_verify.php');
     exit;
 }
 
