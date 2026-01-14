@@ -138,7 +138,7 @@ $_SESSION['authenticated'] = true;
 cleanupOtpSession();
 
 /* ---------------- Redirect ---------------- */
-header('Location: /dashboard.php');
+header('Location: /login_index.php');
 exit;
 
 

@@ -2,11 +2,8 @@
 declare(strict_types=1);
 require_once __DIR__ . '/backend/bootstrap.php';
 
-require_once __DIR__ . '/bootstrap.php';
 
-echo '<pre>';
-var_dump($_SESSION);
-exit;
+
 /* If user has no OTP session, redirect */
 if (empty($_SESSION['otp_user'])) {
     header("Location: /login.php");
