@@ -4,7 +4,6 @@ require_once __DIR__. '/backend/bootstrap.php';
 
 // 🔐 Authorization required
 require_once __DIR__ . '/backend/middleware/auth_check.php';
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -13,71 +12,10 @@ require_once __DIR__ . '/backend/middleware/auth_check.php';
   <title>Deploy on Your PaaS</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      font-family: Inter, Arial, sans-serif;
-      background: #0f172a;
-      color: #e5e7eb;
-      margin: 0;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: auto;
-      padding: 40px 20px;
-    }
-
-    h1, h2 {
-      color: #f8fafc;
-    }
-
-    p {
-      line-height: 1.7;
-      color: #cbd5f5;
-    }
-
-    .card {
-      background: #020617;
-      border-radius: 14px;
-      padding: 25px;
-      margin: 25px 0;
-      border: 1px solid #1e293b;
-    }
-
-    pre {
-      background: #020617;
-      color: #22c55e;
-      padding: 14px;
-      border-radius: 8px;
-      overflow-x: auto;
-    }
-
-    .btn {
-      display: inline-block;
-      padding: 14px 28px;
-      background: linear-gradient(135deg, #6366f1, #22c55e);
-      color: #020617;
-      font-weight: bold;
-      border-radius: 10px;
-      text-decoration: none;
-      margin-top: 20px;
-    }
-
-    .btn:hover {
-      opacity: 0.9;
-    }
-
-    .footer {
-      text-align: center;
-      margin-top: 60px;
-      font-size: 14px;
-      color: #64748b;
-    }
-  </style>
+<link rel="stylesheet" href="assets/css/user_docs.css">
 </head>
 
 <body>
-
 <div class="container">
 
   <h1>🚀 Deploy Applications on Your PaaS</h1>
@@ -87,16 +25,22 @@ require_once __DIR__ . '/backend/middleware/auth_check.php';
   </p>
 
   <div class="card">
-    <h2>📁 Repository Structure</h2>
-    <p>Your GitHub repository must contain a root folder named <strong>app</strong>.</p>
+    <h2>📁 Repository structure</h2>
+    <p>Your GitHub repository must contain a root folder named <strong>app</strong> with the following files:</p>
     <pre>
 your-repo/
 └── app/
+    ├── src/                # Your application source code
+    ├── Dockerfile          # Container build instructions
+    ├── nginx.conf          # Web server configuration
+    ├── schema.sql          # Database schema (PostgreSQL)
+    ├── helm/               # Helm charts for Kubernetes
+    └── .github/workflows/  # GitHub Actions CI/CD pipeline
     </pre>
   </div>
 
   <div class="card">
-    <h2>⚙️ Supported Frameworks</h2>
+    <h2>⚙️ Supported frameworks</h2>
     <ul>
       <li>PHP</li>
       <li>Node.js</li>
@@ -107,15 +51,57 @@ your-repo/
   </div>
 
   <div class="card">
-    <h2>🗄️ Database Support</h2>
-    <p>
-       <strong>PostgreSQL only</strong> as a managed database.
-      Credentials are injected securely via environment variables.
-    </p>
+    <h2>🗄️ Database schema example</h2>
+    <p>Use <code>schema.sql</code> to define your PostgreSQL tables:</p>
+    <pre>
+-- schema.sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE sessions (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id) ON DELETE CASCADE,
+  token VARCHAR(255) UNIQUE NOT NULL,
+  expires_at TIMESTAMP NOT NULL
+);
+    </pre>
   </div>
 
   <div class="card">
-    <h2>🔄 CI/CD Behavior</h2>
+    <h2>🌐 Nginx configuration example</h2>
+    <p>Place <code>nginx.conf</code> in the <code>app/</code> folder:</p>
+    <pre>
+# nginx.conf
+server {
+    listen 80;
+    server_name _;
+    root /var/www/html/public;
+
+    index index.php index.html;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_pass php-fpm:9000;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+    </pre>
+  </div>
+
+  <div class="card">
+    <h2>🔄 CI/CD behavior</h2>
     <p>
       Once deployed, your application is continuously updated.
     </p>
@@ -138,6 +124,5 @@ your-repo/
   </div>
 
 </div>
-
 </body>
 </html>

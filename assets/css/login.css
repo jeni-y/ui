@@ -7,7 +7,7 @@
 /* Background */
 body {
   margin: 0;
-  background: url(cloud.jpg);
+  background: url(https://cnd-image-loader.web.app/cloud.jpg);
   background-size: cover;
   color: #fff;
   min-height: 100vh;

@@ -1,0 +1,74 @@
+body {
+    
+    font-family: Inter, Arial, sans-serif;
+    background: url(https://cnd-image-loader.web.app/user.jpeg);
+    color: #111827;
+    background-size: cover;
+    background-repeat: no-repeat;
+    margin: 0;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 40px 20px;
+}
+
+h1, h2 {
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+p {
+  line-height: 1.7;
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 25px;
+  margin: 25px 0;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.btn {
+  display: inline-block;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #6366f1, #22c55e);
+  color: #ffffff;
+  font-weight: bold;
+  border-radius: 10px;
+  text-decoration: none;
+  margin-top: 20px;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 60px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+/* Terminal-style code blocks */
+pre {
+  background:
+    radial-gradient(circle 6px at 22px 14px, #ff5f56 98%, transparent 100%),
+    radial-gradient(circle 6px at 42px 14px, #ffbd2e 98%, transparent 100%),
+    radial-gradient(circle 6px at 62px 14px, #27c93f 98%, transparent 100%),
+    linear-gradient(#2b2b2b, #2b2b2b) top left / 100% 24px no-repeat,
+    #1e1e1e;
+  color: #00ff7f;
+  font-family: "Fira Code", "Courier New", monospace;
+  padding: 28px 20px 20px;
+  border-radius: 10px;
+  overflow-x: auto;
+  border: 1px solid #333;
+  margin-top: 16px;
+}
