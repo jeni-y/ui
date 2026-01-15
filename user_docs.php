@@ -109,7 +109,7 @@ your-repo/
   <div class="card">
     <h2>🗄️ Database Support</h2>
     <p>
-      Your PaaS provides <strong>PostgreSQL only</strong> as a managed database.
+       <strong>PostgreSQL only</strong> as a managed database.
       Credentials are injected securely via environment variables.
     </p>
   </div>
