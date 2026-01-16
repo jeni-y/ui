@@ -1,0 +1,98 @@
+/* Center everything */
+body {
+  margin: 0;
+  font-family: "Segoe UI", Roboto, sans-serif;
+  background: url(cloud.jpg);
+  background-size: cover;
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Wrapper: fixed compact width */
+.wrapper {
+  width: 100%;
+  max-width: 360px;   /* ✅ smaller fixed width */
+  margin: 0 auto;
+}
+
+/* Form card: compact padding */
+.form-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border-radius: 10px;
+  padding: 18px;      /* ✅ reduced padding */
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+}
+
+/* Grid layout: tighter spacing */
+.form-grid {
+  display: grid;
+  gap: 10px;          /* ✅ reduced spacing */
+}
+
+/* Inputs: compact height */
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 6px;       /* ✅ smaller padding */
+  border-radius: 5px;
+  border: none;
+  outline: none;
+  font-size: 0.85rem; /* ✅ smaller text */
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+
+/* Button: compact */
+.btn {
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  border: none;
+  padding: 8px;       /* ✅ smaller button */
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.3s ease;
+}
+.btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #0072ff, #00c6ff);
+}
+
+/* Title: compact */
+.title {
+  text-align: center;
+  margin-bottom: 12px; /* ✅ less margin */
+  font-size: 1.3rem;   /* ✅ smaller title */
+  font-weight: 600;
+}
+
+/* Result feedback */
+.result {
+  margin-top: 10px;
+  font-weight: 600;
+  text-align: center;
+  font-size: 0.85rem;
+}
+.result.error { color: #ff6b6b; }
+.result.success { color: #4caf50; }
+
+.small-toggle {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.small-toggle label {
+  font-size: 0.85rem;
+  color: #ccc;
+}
+
+.toggle-group {
+  display: inline-flex;
+  gap: 10px;
+  font-size: 0.85rem; /* ✅ smaller text */
+}

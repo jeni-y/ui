@@ -1,0 +1,149 @@
+/* Reset + font */
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", Roboto, sans-serif;
+}
+
+/* Background */
+body {
+  margin: 0;
+  background: url(cloud.jpg);
+  background-size: cover;
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Wrapper for centering */
+.wrapper {
+  width: 100%;
+  max-width: 200px;   /* ✅ compact width */
+  margin: 0 auto;
+}
+
+/* Card with glassmorphism */
+.card {
+  width: 460px;                          /* old login size */
+  background: rgba(255, 255, 255, 0.08); /* PaaS glassmorphism */
+  backdrop-filter: blur(12px);           /* blurred background */
+  border-radius: 10px;
+  padding: 40px;                         /* old login padding */
+  box-shadow: 0 10px 30px rgba(0,0,0,.3);/* stronger shadow for depth */
+  color: #fff;                           /* text color matches PaaS */
+}
+
+/* Title */
+h1 {
+  text-align: center;
+  margin-bottom: 12px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #fff;
+}
+.subtitle {
+  text-align: center;
+  color: #ccc;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
+
+/* Form grid */
+.form-grid {
+  display: grid;
+  gap: 10px;
+}
+
+/* Inputs */
+label {
+  font-size: 0.85rem;
+  color: #ccc;
+}
+input {
+  width: 100%;
+  padding: 6px;
+  border-radius: 5px;
+  border: none;
+  outline: none;
+  font-size: 0.85rem;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+input::placeholder {
+  color: #aaa;
+}
+input:focus {
+  border: 1px solid #057fa0;
+  background: rgba(255,255,255,0.25);
+}
+
+/* Buttons */
+button {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.3s ease;
+}
+.primary {
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  color: #fff;
+}
+.primary:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #0072ff, #00c6ff);
+}
+.google {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid #ccc;
+  color: #fff;
+}
+
+/* Divider */
+.or {
+  display: flex;
+  align-items: center;
+  margin: 16px 0;
+  color: #ccc;
+  font-size: 0.85rem;
+}
+.or::before, .or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #555;
+}
+.or span {
+  margin: 0 12px;
+}
+
+/* Links + footer */
+.link {
+  color: #054658;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+.footer {
+  margin-top: 12px;
+  font-size: 0.8rem;
+  text-align: center;
+  color: #ccc;
+}
+
+/* Feedback messages */
+.message {
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  text-align: center;
+  font-size: 0.85rem;
+}
+.error { color: #ff6b6b; }
+.success { color: #4caf50; }
+
+.hidden { display: none; }
