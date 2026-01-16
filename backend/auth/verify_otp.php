@@ -3,9 +3,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../bootstrap.php';
 
-
-session_start();
-
 /* ---------------- Fail fast: session check ---------------- */
 if (empty($_SESSION['otp_user'])) {
     $_SESSION['auth_error'] = 'Session expired. Please login again.';
