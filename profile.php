@@ -39,10 +39,7 @@ $user = [
         <div><span>Joined:</span><span><?php echo $user['joined']; ?></span></div>
     </div>
 </section>
-
-<footer>
-    &copy; 2025 CloudApp. All rights reserved.
-</footer>
-
+<?php include __DIR__ . '/includes/footer.php'; ?>
 </body>
+
 </html>
