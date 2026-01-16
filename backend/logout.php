@@ -15,5 +15,5 @@ setcookie('remember_token', '', time() - 3600, '/');
 $_SESSION = [];
 session_destroy();
 
-header('Location: /login.php');
+header('Location: /login_index.php');
 exit;

@@ -11,7 +11,7 @@ require_once __DIR__. '/backend/bootstrap.php';
 </head>
 <body>
 
-<?php include __DIR__ . '/includes/logout_nav.php'; ?>
+<?php include __DIR__ . '/includes/nav.php'; ?>
 <?php include __DIR__ . '/includes/hero.php'; ?>
 <?php include __DIR__ . '/includes/services.php'; ?>
 <?php include __DIR__ . '/includes/footer.php'; ?>

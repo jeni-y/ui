@@ -1,0 +1,79 @@
+/* Base Reset and Font */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+/* Header Navigation */
+nav {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  background-color: #1f1f1f;
+  padding: 1rem 0;
+  border-bottom: 1px solid #333;
+}
+
+nav a {
+  color: #90caf9;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+nav a:hover {
+  color: #ffffff;
+}
+
+/* Profile Container */
+.profile-container {
+  max-width: 600px;
+  margin: 3rem auto;
+  background-color: #1e1e1e;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+/* Profile Title */
+.profile-container h2 {
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  color: #ffffff;
+  border-bottom: 1px solid #444;
+  padding-bottom: 0.5rem;
+}
+
+/* Profile Info */
+.profile-info {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  row-gap: 1rem;
+  column-gap: 1rem;
+}
+
+.profile-info div {
+  padding: 0.5rem 0;
+}
+
+.profile-info .label {
+  font-weight: bold;
+  color: #b0bec5;
+}
+
+.profile-info .value {
+  color: #e0f7fa;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.9rem;
+  color: #777;
+  border-top: 1px solid #333;
+  margin-top: 3rem;
+}
