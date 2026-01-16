@@ -11,8 +11,17 @@ require_once __DIR__ . '/backend/bootstrap.php';
 <body>
 <div class="card">
 
+<?php 
+// Add this before the message display
+if (isset($_SESSION['auth_error'])) {
+    $message = $_SESSION['auth_error'];
+    $type = 'error';
+    unset($_SESSION['auth_error']);
+}
+?>
+
 <?php if (!empty($message)): ?>
-    <div class="message <?= $type ?>"><?= htmlspecialchars($message) ?></div>
+    <div class="message <?= $type ?? '' ?>"><?= htmlspecialchars($message) ?></div>
 <?php endif; ?>
 
 <h1>Create Account</h1>
