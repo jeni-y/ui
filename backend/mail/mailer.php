@@ -4,70 +4,53 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../../vendor/autoload.php';
 require_once __DIR__ . '/../config/env.php';
 
-if ($_ENV['APP_ENV'] ?? 'dev' === 'dev') {
-    ini_set('display_errors', '1');
-    ini_set('display_startup_errors', '1');
-    error_reporting(E_ALL);
-}
-
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-if ($_ENV['APP_ENV'] ?? 'dev' === 'dev') {
-    ini_set('display_errors', '1');
-    ini_set('display_startup_errors', '1');
-    error_reporting(E_ALL);
-}
 class Mailer
 {
-    /**
-     * Send an email using PHPMailer.
-     *
-     * @param string $to Recipient email
-     * @param string $subject Email subject
-     * @param string $body Email body
-     * @return bool True if sent successfully, false otherwise
-     */
-    public static function send(string $to, string $subject, string $body): bool
-    {
-        // 🔒 Validate env first
+    private static array $config;
+
+    private static function initConfig(): void {
+        if (isset(self::$config)) return; // already loaded
         foreach (['SMTP_HOST','SMTP_USER','SMTP_PASS','SMTP_PORT','SMTP_FROM'] as $key) {
             if (empty($_ENV[$key])) {
-                error_log("Missing env variable: $key");
-                return false;
+                throw new Exception("Missing env variable: $key");
             }
         }
+        self::$config = [
+            'host' => $_ENV['SMTP_HOST'],
+            'user' => $_ENV['SMTP_USER'],
+            'pass' => $_ENV['SMTP_PASS'],
+            'port' => (int) $_ENV['SMTP_PORT'],
+            'from' => $_ENV['SMTP_FROM'],
+        ];
+    }
 
-        $mail = new PHPMailer(true);
-
+    public static function send(string $to, string $subject, string $body): bool
+    {
         try {
-            // SMTP config
+            self::initConfig();
+
+            $mail = new PHPMailer(true);
             $mail->isSMTP();
-            $mail->Host       = $_ENV['SMTP_HOST'];
+            $mail->Host       = self::$config['host'];
             $mail->SMTPAuth   = true;
-            $mail->Username   = $_ENV['SMTP_USER'];   // usually "apikey" for SendGrid
-            $mail->Password   = $_ENV['SMTP_PASS'];   // SG.xxxxx API key
-            $mail->Port       = (int) $_ENV['SMTP_PORT'];
+            $mail->Username   = self::$config['user'];
+            $mail->Password   = self::$config['pass'];
+            $mail->Port       = self::$config['port'];
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->SMTPKeepAlive = false; // no persistent connection
 
-            // Headers
-            $mail->setFrom($_ENV['SMTP_FROM'], 'CloudApp');
+            $mail->setFrom(self::$config['from'], 'CloudApp');
             $mail->addAddress($to);
-
-            // Content
             $mail->isHTML(false);
             $mail->Subject = $subject;
             $mail->Body    = $body;
 
-            if ($mail->send()) {
-                error_log("MAIL SUCCESS: sent to $to");
-                return true;
-            } else {
-                error_log("MAIL ERROR: " . $mail->ErrorInfo);
-                return false;
-            }
+            return $mail->send();
         } catch (Exception $e) {
-            error_log("MAIL EXCEPTION: " . $e->getMessage());
+            error_log("MAIL ERROR: " . $e->getMessage());
             return false;
         }
     }
