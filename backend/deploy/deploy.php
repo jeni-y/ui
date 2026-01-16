@@ -2,8 +2,6 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../middleware.php/auth_check.php';
-require_once __DIR__ . '/../config/db.php'; // PostgreSQL connection
-
 // ------------------------
 // CSRF check
 // ------------------------
