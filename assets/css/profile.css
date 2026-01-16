@@ -1,79 +1,91 @@
-/* Base Reset and Font */
-body {
+/* ===== Base Reset ===== */
+* {
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', Roboto, sans-serif;
-  background-color: #121212;
-  color: #e0e0e0;
+  box-sizing: border-box;
 }
 
-/* Header Navigation */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #0f1117;
+  color: #e2e8f0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Navigation ===== */
 nav {
   display: flex;
-  justify-content: center;
-  gap: 2rem;
-  background-color: #1f1f1f;
-  padding: 1rem 0;
-  border-bottom: 1px solid #333;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1a1c23;
+  padding: 1rem 3rem;
+  border-bottom: 1px solid #2c2f36;
 }
 
-nav a {
-  color: #90caf9;
+.nav-brand {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #60a5fa;
+}
+
+.nav-links a {
+  margin-left: 2rem;
+  color: #93c5fd;
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.3s ease;
+  transition: color 0.2s ease;
 }
 
-nav a:hover {
+.nav-links a:hover {
   color: #ffffff;
 }
 
-/* Profile Container */
+/* ===== Profile Container ===== */
 .profile-container {
-  max-width: 600px;
-  margin: 3rem auto;
-  background-color: #1e1e1e;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  max-width: 960px;
+  margin: 4rem auto;
+  background-color: #1f2129;
+  padding: 3rem;
+  border-radius: 16px;
+  box-shadow: 0 0 0 1px #2c2f36;
 }
 
-/* Profile Title */
-.profile-container h2 {
-  margin-bottom: 1.5rem;
-  font-size: 1.8rem;
-  color: #ffffff;
-  border-bottom: 1px solid #444;
+/* ===== Profile Header ===== */
+.profile-container h1 {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: #f3f4f6;
+  border-bottom: 1px solid #2c2f36;
   padding-bottom: 0.5rem;
 }
 
-/* Profile Info */
+/* ===== Profile Info Grid ===== */
 .profile-info {
   display: grid;
-  grid-template-columns: 1fr 2fr;
-  row-gap: 1rem;
-  column-gap: 1rem;
+  grid-template-columns: 200px 1fr;
+  gap: 1.5rem 2rem;
+  font-size: 1.1rem;
 }
 
-.profile-info div {
-  padding: 0.5rem 0;
+.field span {
+  font-weight: 600;
+  color: #94a3b8;
+  display: inline-block;
+  min-width: 180px;
 }
 
-.profile-info .label {
-  font-weight: bold;
-  color: #b0bec5;
+.field {
+  color: #cbd5e1;
 }
 
-.profile-info .value {
-  color: #e0f7fa;
-}
-
-/* Footer */
+/* ===== Footer ===== */
 footer {
+  margin-top: auto;
   text-align: center;
   padding: 1rem;
   font-size: 0.9rem;
-  color: #777;
-  border-top: 1px solid #333;
-  margin-top: 3rem;
+  color: #6b7280;
+  border-top: 1px solid #2c2f36;
 }
