@@ -1,0 +1,51 @@
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
+import json
+import uuid
+import os
+import subprocess
+
+app = FastAPI()
+
+CONFIG_DIR = "/var/lib/vmconfigsdata"
+JOB_DIR = "/var/lib/vmconfigsdata/jobs"
+WORKER_UNIT = "vm-worker@"
+
+class VMRequest(BaseModel):
+    vm_name: str = Field(..., regex="^[a-zA-Z0-9_-]+$")
+    disk_size: str
+    user_name: str = Field(..., regex="^[a-zA-Z0-9_-]+$")
+    ssh_key: str = Field(..., description="Public SSH key for key-based login")
+    password: str | None = None
+
+
+@app.post("/create-vm")
+def create_vm(req: VMRequest):
+    job_id = uuid.uuid4().hex
+    job_file = f"{JOB_DIR}/{job_id}.json"
+
+    try:
+        # ensure job dir exists
+        os.makedirs(JOB_DIR, exist_ok=True)
+
+        # write job data
+        with open(job_file, "w") as f:
+            json.dump(req.dict(), f)
+
+        # start systemd worker
+        subprocess.check_call(
+            ["systemctl", "start", f"{WORKER_UNIT}{job_id}.service"]
+        )
+
+    except subprocess.CalledProcessError as e:
+        raise HTTPException(status_code=500, detail="Failed to start VM worker")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    # return instant
+    return {
+        "status": "accepted",
+        "message": "VM creation started",
+        "job_id": job_id
+    }
