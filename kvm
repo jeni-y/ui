@@ -1,0 +1,111 @@
+#!/bin/bash
+set -euo pipefail
+
+#read -p "enter vm name" vm_name
+#read -p "enter disk size" DISK_SIZE
+#read -p "user name" user_name
+#read -p "ssh key" ssh
+#read -s -p "pass wod " passW
+#echo
+
+JSON="$1"
+
+if [[ -z "${JSON:-}" || ! -f "$JSON" ]]; then
+  echo "Usage: $0 <vm.json>"
+  exit 1
+fi
+
+# Read values from JSON
+vm_name=$(jq -r '.vm_name' "$JSON")
+DISK_SIZE=$(jq -r '.disk_size' "$JSON")
+user_name=$(jq -r '.user_name' "$JSON")
+ssh=$(jq -r '.ssh_key' "$JSON")
+
+
+# Basic validation
+[[ -z "$vm_name" || "$vm_name" == "null" ]] && exit 1
+[[ -z "$DISK_SIZE" || "$DISK_SIZE" == "null" ]] && exit 1
+[[ -z "$user_name" || "$user_name" == "null" ]] && exit 1
+[[ -z "$ssh" || "$ssh" == "null" ]] && exit 1
+
+
+
+folder="$HOME/cloud-init-$vm_name"
+mkdir -p "$folder"
+cd "$folder"
+
+#BASE_IMG="/home/jeni/mydata1/cloud-init4/noble-server-cloudimg-amd64.img"
+BASE_IMG="/var/lib/libvirt/images/cloudvm1/noble-server-cloudimg-amd64.img"
+
+if [[ ! -r "$BASE_IMG" ]]; then
+  echo " Base image not readable: $BASE_IMG"
+  exit 1
+fi
+
+
+qemu-img create -f qcow2 -F qcow2 -b "$BASE_IMG" "${vm_name}.qcow2" "$DISK_SIZE"
+
+cat > user-data <<EOF
+#cloud-config
+hostname: $vm_name
+manage_etc_hosts: true
+
+users:
+  - name: $user_name
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh-authorized-keys:
+      - $ssh
+
+ssh_pwauth: false
+disable_root: false
+
+write_files:
+  - path: /etc/update-motd.d/00-spc-cloud
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      echo ""
+      echo "================================="
+      echo "   WELCOME TO SPERO CLOUD"
+      echo "   Host: \$(hostname)"
+      echo "================================="
+      echo ""
+
+EOF
+
+cat <<EOF > meta-data
+instance-id: ${vm_name}-id
+local-hostname: $vm_name
+EOF
+
+genisoimage -output seed.iso -volid CIDATA -joliet -rock user-data meta-data
+
+dir_1="/var/lib/libvirt/images/${vm_name}"
+if [[ -z "$dir_1" || "$dir_1" == "/" ]]; then
+  echo " Unsafe libvirt directory"
+  exit 1
+fi
+
+sudo mkdir -p "$dir_1"
+sudo cp "${vm_name}.qcow2" seed.iso "$dir_1"
+
+sudo chown libvirt-qemu:kvm "$dir_1/${vm_name}.qcow2"
+sudo chown libvirt-qemu:kvm "$dir_1/seed.iso"
+
+sudo chmod 660 "$dir_1/${vm_name}.qcow2"
+sudo chmod 644 "$dir_1/seed.iso"
+
+sudo virt-install --connect qemu:///system \
+  --name "$vm_name" \
+  --ram 2048 \
+  --vcpus 2 \
+  --disk path="$dir_1/${vm_name}.qcow2",format=qcow2 \
+  --disk path="$dir_1/seed.iso",device=cdrom \
+  --os-variant ubuntu24.04 \
+  --network network=default \
+  --graphics none \
+  --console pty,target_type=serial \
+  --import
+
+echo "done!"
